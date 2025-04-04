@@ -4,7 +4,17 @@
   padding: 2rem;
   text-align: center;
 }
-
+@font-face {
+  font-family: 'Geist';
+  src: url('./assets/font/Geist.ttf');
+}
+*{
+  margin: 0;
+  padding: 0;
+  font-family: 'Geist';
+  background-color: var(--bg);
+  color: var(--light);
+}
 .logo {
   height: 6em;
   padding: 1.5em;

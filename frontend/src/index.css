@@ -1,15 +1,51 @@
+#root {
+  --primary: #c1211f;
+  --bg: #18181b;
+  --dark: #09090b;
+  --light: #fffafa;
+  --gray: #aa9f9f;
+}
+@font-face {
+    font-family: 'Geist';
+    src: url('./assets/font/Geist.ttf');
+}
+*{
+    margin: 0;
+    padding: 0;
+    font-family: 'Geist' !important ;
+    background-color: var(--bg);
+    color: var(--light);
+}
+body{
+    background-color: var(--bg);
+    width: 100%;
+    min-height: 100%;
+}
+main{
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+    align-items: center;
+}
+h1{
+    font-size: 1.25rem;
+}
+h1 span{
+    color: var(--primary);
+}
+
 body {
-  font-family: Arial, sans-serif;
+  font-family: 'Geist';
   margin: 0;
   padding: 0;
-  background-color: #f5f5f5;
+  min-height: 100vh;
 }
 
 .login-container {
   max-width: 400px;
   margin: 50px auto;
   padding: 20px;
-  background: white;
   border-radius: 8px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
@@ -18,7 +54,6 @@ body {
   max-width: 600px;
   margin: 20px auto;
   padding: 20px;
-  background: white;
   border-radius: 8px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
@@ -45,7 +80,7 @@ select {
 }
 
 button {
-  background-color: #4CAF50;
+  background-color: var(--primary);
   color: white;
   padding: 10px 15px;
   border: none;
