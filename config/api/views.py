@@ -13,7 +13,7 @@ class BulkCreateViewSet(mixins.CreateModelMixin,
             kwargs['many'] = True
         return super().get_serializer(*args, **kwargs)
 
-# Views para modelos simples (bulk create)
+# Views para modelos simples (bulk create), esto fue para que desde el localhost:8000 pueda mandar json y crear varios objetos a la vez
 class GenreViewSet(BulkCreateViewSet):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
@@ -83,18 +83,20 @@ class ProductSizeStockViewSet(BulkCreateViewSet):
             return Response(created_stocks, status=status.HTTP_201_CREATED)
         return super().create(request, *args, **kwargs)
 
-# Views complejas (Band y Product)
+# Views complejas (Band y Product), aca se manejan los objetos que tienen relaciones con otros modelos, por lo que se necesita un poco mas de logica para crear los objetos
+# y sus relaciones. Se manejan tanto objetos individuales como listas de objetos, por lo que se hace un chequeo para ver si el request es una lista o no
 class BandViewSet(viewsets.ModelViewSet):
     queryset = Band.objects.all()
     serializer_class = BandSerializer
     permission_classes = [AllowAny]
 
     def create(self, request, *args, **kwargs):
-        # Manejar tanto objeto único como lista
+        # Manejar tanto objeto unico como lista
         if isinstance(request.data, list):
             return self._create_many(request, *args, **kwargs)
         return self._create_one(request, *args, **kwargs)
 
+    # quise fantasmear con lo de las imagenes pero pincho fuerte
     def _create_one(self, request, *args, **kwargs):
         data = request.data.copy()
         band_serializer = self.get_serializer(data=data)
@@ -135,6 +137,7 @@ class BandViewSet(viewsets.ModelViewSet):
         
         return Response(created_bands, status=status.HTTP_201_CREATED)
 
+# Views para Product, similar a BandViewSet pero con un poco mas de logica para manejar los stocks y las imagenes (que no andan :v)
 class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
