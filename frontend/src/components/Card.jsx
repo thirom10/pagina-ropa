@@ -6,13 +6,13 @@ const Card = ({
   isNew, 
   rating, 
   reviewCount, 
-  title, 
+  name, 
   price, 
 }) => {
   return (
     <div className="product-card">
       <div className="product-image-container">
-        <img src={image} alt={title} className="product-image" />
+        <img src={image} alt={name} className="product-image" />
         {isNew && <span className="new-badge">NEW</span>}
         <button 
           className={`favorite-button`}
@@ -29,8 +29,8 @@ const Card = ({
           <span className="review-count">{reviewCount} reviews</span>
         </div>
         
-        <h3 className="product-title">{title}</h3>
-        <p className="product-price">${price.toFixed(2)}</p>
+        <h3 className="product-title">{name}</h3>
+        <p className="product-price">${price}</p>
         
         <button className="add-to-cart-button">
           Add
