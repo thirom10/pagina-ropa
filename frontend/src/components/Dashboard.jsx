@@ -4,6 +4,7 @@ import SizeForm from './SizeForm';
 import BandForm from './BandForm';
 import ProductForm from './ProductForm';
 import { useNavigate } from 'react-router-dom';
+import './styles/Dashboard.css';
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState('genre');
@@ -16,12 +17,12 @@ export default function Dashboard() {
 
   return (
     <div className="dashboard">
-      <header>
+      {/* <header>
         <h1>Panel de Administración</h1>
         <button onClick={handleLogout}>Cerrar Sesión</button>
-      </header>
+      </header> */}
       
-      <nav>
+      <nav className='dashboard-nav'>
         <button onClick={() => setActiveTab('genre')}>Géneros</button>
         <button onClick={() => setActiveTab('size')}>Tallas</button>
         <button onClick={() => setActiveTab('band')}>Bandas</button>
