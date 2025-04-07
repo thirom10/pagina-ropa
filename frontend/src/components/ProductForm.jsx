@@ -7,12 +7,13 @@ export default function ProductForm() {
     description: '',
     price: '',
     band: '',
-    images: [],
+    images: [], // Ahora será un array de archivos
     sizes_stock: []
   });
   const [bands, setBands] = useState([]);
   const [sizes, setSizes] = useState([]);
   const [message, setMessage] = useState('');
+  const [previewImages, setPreviewImages] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -31,6 +32,22 @@ export default function ProductForm() {
     });
   };
 
+  const handleImageChange = (e) => {
+    const files = Array.from(e.target.files);
+    
+    // Crear URLs para previsualización
+    const previews = files.map(file => ({
+      file,
+      preview: URL.createObjectURL(file)
+    }));
+    
+    setPreviewImages(previews);
+    setFormData({
+      ...formData,
+      images: files
+    });
+  };
+
   const handleSizeStockChange = (sizeId, stock) => {
     const newSizesStock = formData.sizes_stock.filter(item => item.size !== sizeId);
     if (stock > 0) {
@@ -44,8 +61,26 @@ export default function ProductForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    const formDataToSend = new FormData();
+    formDataToSend.append('name', formData.name);
+    formDataToSend.append('description', formData.description);
+    formDataToSend.append('price', formData.price);
+    formDataToSend.append('band', formData.band);
+    
+    // Agregar imágenes
+    formData.images.forEach((image, index) => {
+      formDataToSend.append(`images[${index}]image`, image);
+    });
+    
+    // Agregar tallas y stock
+    formData.sizes_stock.forEach((item, index) => {
+      formDataToSend.append(`sizes_stock[${index}]size`, item.size);
+      formDataToSend.append(`sizes_stock[${index}]stock`, item.stock);
+    });
+
     try {
-      await createProduct(formData);
+      await createProduct(formDataToSend);
       setMessage('Producto creado exitosamente!');
       setFormData({
         name: '',
@@ -55,8 +90,9 @@ export default function ProductForm() {
         images: [],
         sizes_stock: []
       });
+      setPreviewImages([]);
     } catch (error) {
-      setMessage('Error al crear el producto');
+      setMessage('Error al crear el producto: ' + error.message);
     }
   };
 
@@ -107,6 +143,27 @@ export default function ProductForm() {
               <option key={band.id} value={band.id}>{band.name}</option>
             ))}
           </select>
+        </div>
+
+        <div>
+          <label>Imágenes:</label>
+          <input
+            type="file"
+            name="images"
+            onChange={handleImageChange}
+            multiple
+            accept="image/*"
+          />
+          <div className="image-previews">
+            {previewImages.map((img, index) => (
+              <img 
+                key={index} 
+                src={img.preview} 
+                alt={`Preview ${index}`}
+                style={{ width: '100px', height: '100px', objectFit: 'cover', margin: '5px' }}
+              />
+            ))}
+          </div>
         </div>
         
         <div>

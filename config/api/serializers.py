@@ -30,10 +30,6 @@ class SizeSerializer(serializers.ModelSerializer):
         model = Size
         fields = ['id', 'name']
 
-class ProductImageSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ProductImage
-        fields = ['id', 'image']
 
 class ProductSizeStockSerializer(serializers.ModelSerializer):
     size = SizeSerializer(read_only=True)
@@ -41,6 +37,13 @@ class ProductSizeStockSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProductSizeStock
         fields = ['size', 'stock']
+
+
+class ProductImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProductImage
+        fields = ['id', 'image']
+        read_only_fields = ['id']
 
 class ProductSerializer(serializers.ModelSerializer):
     band = serializers.StringRelatedField()

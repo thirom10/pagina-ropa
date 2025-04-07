@@ -4,6 +4,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.viewsets import GenericViewSet
 from .models import *
 from .serializers import *
+from rest_framework.parsers import MultiPartParser, JSONParser
 
 class BulkCreateViewSet(mixins.CreateModelMixin, 
                        mixins.ListModelMixin,
@@ -137,57 +138,55 @@ class BandViewSet(viewsets.ModelViewSet):
         
         return Response(created_bands, status=status.HTTP_201_CREATED)
 
-# Views para Product, similar a BandViewSet pero con un poco mas de logica para manejar los stocks y las imagenes (que no andan :v)
 class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
-    permission_classes = [AllowAny]
+    parser_classes = [MultiPartParser, JSONParser]
 
     def create(self, request, *args, **kwargs):
-        if isinstance(request.data, list):
-            return self._create_many(request, *args, **kwargs)
-        return self._create_one(request, *args, **kwargs)
-
-    def _create_one(self, request, *args, **kwargs):
-        data = request.data.copy()
+        # Procesar datos del formulario
+        data = request.data.dict() if hasattr(request.data, 'dict') else request.data.copy()
+        
+        # Extraer sizes_stock
+        sizes_stock = []
+        i = 0
+        while f'sizes_stock[{i}]size' in data:
+            sizes_stock.append({
+                'size': data.pop(f'sizes_stock[{i}]size'),
+                'stock': data.pop(f'sizes_stock[{i}]stock')
+            })
+            i += 1
+        
+        # Crear el producto primero
         product_serializer = self.get_serializer(data=data)
         product_serializer.is_valid(raise_exception=True)
         product = product_serializer.save()
         
-        if 'images' in data:
-            for image_url in data.get('images', []):
-                ProductImage.objects.create(product=product, image=image_url)
+        # Procesar imágenes y asociarlas al producto
+        images = []
+        i = 0
+        while f'images[{i}]image' in request.data:
+            image_data = {'image': request.data[f'images[{i}]image']}
+            image_serializer = ProductImageSerializer(data=image_data)
+            image_serializer.is_valid(raise_exception=True)
+            image = image_serializer.save()
+            images.append(image)
+            i += 1
         
-        if 'sizes_stock' in data:
-            for item in data.get('sizes_stock', []):
-                ProductSizeStock.objects.create(
-                    product=product,
-                    size_id=item.get('size'),
-                    stock=item.get('stock', 0)
-                )
+        # Asociar las imágenes al producto usando la relación many-to-many
+        product.images.add(*images)
         
-        headers = self.get_success_headers(product_serializer.data)
-        return Response(product_serializer.data, status=status.HTTP_201_CREATED, headers=headers)
-
-    def _create_many(self, request, *args, **kwargs):
-        created_products = []
-        for product_data in request.data:
-            serializer = self.get_serializer(data=product_data)
-            serializer.is_valid(raise_exception=True)
-            product = serializer.save()
-            
-            if 'images' in product_data:
-                for image_url in product_data.get('images', []):
-                    ProductImage.objects.create(product=product, image=image_url)
-            
-            if 'sizes_stock' in product_data:
-                for item in product_data.get('sizes_stock', []):
-                    ProductSizeStock.objects.create(
-                        product=product,
-                        size_id=item.get('size'),
-                        stock=item.get('stock', 0)
-                    )
-            
-            created_products.append(serializer.data)
+        # Crear stock por talla
+        for stock_data in sizes_stock:
+            ProductSizeStock.objects.create(
+                product=product,
+                size_id=stock_data['size'], 
+                stock=stock_data['stock']
+            )
         
-        return Response(created_products, status=status.HTTP_201_CREATED)
+        # Obtener el producto con todas sus relaciones actualizadas
+        product = Product.objects.get(id=product.id)
+        serializer = self.get_serializer(product)
+        
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)

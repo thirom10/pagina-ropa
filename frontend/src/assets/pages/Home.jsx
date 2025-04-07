@@ -14,6 +14,7 @@ const Home = () => {
       const fetchData = async () => {
       try {
         const productsRes = await getProducts();
+        console.log('Products data:', productsRes.data); // Para debuggear
         const bandsRes = await getBands();
         setBands(bandsRes.data);
         setProducts(productsRes.data);
@@ -52,7 +53,7 @@ const Home = () => {
               products.map(product => (
                 <Card 
                   key={product.id}
-                  image={product.image}
+                  image={product.images[0]?.image} // Accedemos a la URL de la imagen
                   isNew={product.isNew}
                   rating={product.rating}
                   reviewCount={product.reviewCount}
